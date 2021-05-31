@@ -14,6 +14,14 @@ defmodule DeepThoughtWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :slack_api do
+    plug DeepThoughtWeb.Plugs.Slack, Application.get_env(:deep_thought, :slack)[:signing_secret]
+  end
+
+  scope "/slack", DeepThoughtWeb do
+    pipe_through [:api, :slack_api]
+  end
+
   scope "/", DeepThoughtWeb do
     pipe_through :browser
 
