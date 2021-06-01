@@ -21,6 +21,8 @@ defmodule DeepThoughtWeb.Router do
 
   scope "/slack", DeepThoughtWeb do
     pipe_through [:api, :slack_api]
+
+    post "/events", EventController, :create
   end
 
   scope "/", DeepThoughtWeb do
