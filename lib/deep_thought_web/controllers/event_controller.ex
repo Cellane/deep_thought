@@ -29,7 +29,7 @@ defmodule DeepThoughtWeb.EventController do
          {:ok, [message | _]} <- Slack.API.conversations_replies(channelId, messageTs),
          messageText when not is_nil(messageText) <- Slack.transform_message_text(message),
          {:ok, translation} <- DeepL.API.translate(messageText, language),
-         :ok <- Slack.say_in_thread(channelId, translation, message) do
+         :ok <- Slack.say_in_thread(channelId, translation, message, messageText) do
       send_resp(conn, :no_content, "")
     else
       _ ->

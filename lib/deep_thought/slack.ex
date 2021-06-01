@@ -6,6 +6,7 @@ defmodule DeepThought.Slack do
   import Ecto.Query, warn: false
   alias DeepThought.Repo
 
+  alias DeepThought.Slack
   alias DeepThought.Slack.Event
 
   @doc """
@@ -62,8 +63,12 @@ defmodule DeepThought.Slack do
     messageText
   end
 
-  def say_in_thread(channel, text, message) do
-    DeepThought.Slack.API.post_message(channel, text, thread_ts: get_thread_ts(message))
+  def say_in_thread(channel, text, message, originalText) do
+    blocks =
+      [Slack.TranslationBlock.generate(text), Slack.FooterBlock.generate(originalText)]
+      |> Jason.encode!()
+
+    Slack.API.post_message(channel, text, blocks: blocks, thread_ts: get_thread_ts(message))
   end
 
   defp get_thread_ts(%{"thread_ts" => thread_ts}), do: thread_ts
