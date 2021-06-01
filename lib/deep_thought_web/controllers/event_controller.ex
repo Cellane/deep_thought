@@ -18,7 +18,7 @@ defmodule DeepThoughtWeb.EventController do
         %{
           "event" =>
             %{
-              "item" => %{"channel" => channelId, "ts" => messageTs, "type" => "message"},
+              "item" => %{"channel" => channel_id, "ts" => message_ts, "type" => "message"},
               "reaction" => reaction,
               "type" => "reaction_added"
             } = event_details,
@@ -26,10 +26,10 @@ defmodule DeepThoughtWeb.EventController do
         } = event_params
       ) do
     with {:ok, language} <- LanguageConverter.reaction_to_lang(reaction),
-         {:ok, [message | _]} <- Slack.API.conversations_replies(channelId, messageTs),
+         {:ok, [message | _]} <- Slack.API.conversations_replies(channel_id, message_ts),
          messageText when not is_nil(messageText) <- Slack.transform_message_text(message),
          {:ok, translation} <- DeepL.API.translate(messageText, language),
-         :ok <- Slack.say_in_thread(channelId, translation, message, messageText) do
+         :ok <- Slack.say_in_thread(channel_id, translation, message, messageText) do
       send_resp(conn, :no_content, "")
     else
       _ ->

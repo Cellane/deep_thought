@@ -63,9 +63,9 @@ defmodule DeepThought.Slack do
     messageText
   end
 
-  def say_in_thread(channel, text, message, originalText) do
+  def say_in_thread(channel, text, message, original_text) do
     blocks =
-      [Slack.TranslationBlock.generate(text), Slack.FooterBlock.generate(originalText)]
+      [Slack.TranslationBlock.generate(text), Slack.FooterBlock.generate(message, original_text)]
       |> Jason.encode!()
 
     Slack.API.post_message(channel, text, blocks: blocks, thread_ts: get_thread_ts(message))
