@@ -55,17 +55,17 @@ defmodule DeepThought.Slack do
     |> Repo.insert()
   end
 
-  def transform_message_text([]), do: nil
-
-  def transform_message_text([message | _]) do
-    case Map.get(message, "text") do
-      nil ->
-        nil
-
-      message ->
-        message = Regex.replace(~r/<@\S+>/i, message, "👤")
-        message = Regex.replace(~r/<!\S+>/i, message, "👥")
-        message
-    end
+  def transform_message_text(message) do
+    messageText = Map.get(message, "text")
+    messageText = Regex.replace(~r/<@\S+>/i, messageText, "👤")
+    messageText = Regex.replace(~r/<!\S+>/i, messageText, "👥")
+    messageText
   end
+
+  def say_in_thread(channel, text, message) do
+    DeepThought.Slack.API.post_message(channel, text, thread_ts: get_thread_ts(message))
+  end
+
+  defp get_thread_ts(%{"thread_ts" => thread_ts}), do: thread_ts
+  defp get_thread_ts(%{"ts" => ts}), do: ts
 end

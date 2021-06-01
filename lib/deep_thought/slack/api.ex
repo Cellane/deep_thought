@@ -16,9 +16,9 @@ defmodule DeepThought.Slack.API do
     end
   end
 
-  def post_message(channel, text) do
-    case post("/chat.postMessage", %{channel: channel, text: text}) do
-      {:ok, response} -> :ok
+  def post_message(channel, text, opts) do
+    case post("/chat.postMessage", Enum.into(opts, %{channel: channel, text: text})) do
+      {:ok, _response} -> :ok
       {:error, error} -> {:error, error}
     end
   end
