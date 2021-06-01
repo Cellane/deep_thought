@@ -15,7 +15,8 @@ defmodule DeepThoughtWeb.Router do
   end
 
   pipeline :slack_api do
-    plug DeepThoughtWeb.Plugs.Slack, Application.get_env(:deep_thought, :slack)[:signing_secret]
+    plug DeepThoughtWeb.Plugs.SignatureVerifier,
+         Application.get_env(:deep_thought, :slack)[:signing_secret]
   end
 
   scope "/slack", DeepThoughtWeb do
