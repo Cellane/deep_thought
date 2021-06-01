@@ -9,6 +9,13 @@ defmodule DeepThought.Slack.API do
 
   plug(Tesla.Middleware.JSON)
 
+  def chat_get_permalink(channel_id, message_ts) do
+    case get("/chat.getPermalink", query: [channel: channel_id, message_ts: message_ts]) do
+      {:ok, response} -> {:ok, response.body() |> Map.get("permalink")}
+      {:error, error} -> {:error, error}
+    end
+  end
+
   def conversations_replies(channel_id, message_ts) do
     case get("/conversations.replies",
            query: [channel: channel_id, ts: message_ts, inclusive: true]
