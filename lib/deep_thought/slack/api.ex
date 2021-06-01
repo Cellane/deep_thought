@@ -9,9 +9,28 @@ defmodule DeepThought.Slack.API do
 
   plug(Tesla.Middleware.JSON)
 
+  def chat_delete(channel_id, message_ts) do
+    case post("/chat.delete", %{channel: channel_id, ts: message_ts}) do
+      {:ok, _} -> :ok
+      {:error, error} -> {:error, error}
+    end
+  end
+
   def chat_get_permalink(channel_id, message_ts) do
     case get("/chat.getPermalink", query: [channel: channel_id, message_ts: message_ts]) do
       {:ok, response} -> {:ok, response.body() |> Map.get("permalink")}
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  def chat_post_ephemeral(channel_id, user_id, text, thread_ts) do
+    case post("/chat.postEphemeral", %{
+           channel: channel_id,
+           user: user_id,
+           text: text,
+           thread_ts: thread_ts
+         }) do
+      {:ok, response} -> :ok
       {:error, error} -> {:error, error}
     end
   end
