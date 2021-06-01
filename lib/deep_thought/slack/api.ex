@@ -35,18 +35,18 @@ defmodule DeepThought.Slack.API do
     end
   end
 
+  def chat_post_message(channel, text, opts) do
+    case post("/chat.postMessage", Enum.into(opts, %{channel: channel, text: text})) do
+      {:ok, _response} -> :ok
+      {:error, error} -> {:error, error}
+    end
+  end
+
   def conversations_replies(channel_id, message_ts) do
     case get("/conversations.replies",
            query: [channel: channel_id, ts: message_ts, inclusive: true]
          ) do
       {:ok, response} -> {:ok, response.body() |> Map.get("messages")}
-      {:error, error} -> {:error, error}
-    end
-  end
-
-  def post_message(channel, text, opts) do
-    case post("/chat.postMessage", Enum.into(opts, %{channel: channel, text: text})) do
-      {:ok, _response} -> :ok
       {:error, error} -> {:error, error}
     end
   end

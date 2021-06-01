@@ -71,7 +71,10 @@ defmodule DeepThought.Slack do
       ]
       |> Jason.encode!()
 
-    Slack.API.post_message(channel_id, text, blocks: blocks, thread_ts: get_thread_ts(message))
+    Slack.API.chat_post_message(channel_id, text,
+      blocks: blocks,
+      thread_ts: get_thread_ts(message)
+    )
   end
 
   defp get_thread_ts(%{"thread_ts" => thread_ts}), do: thread_ts
