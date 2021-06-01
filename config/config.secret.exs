@@ -1,5 +1,13 @@
 use Mix.Config
 
+deepl_auth_key =
+  System.get_env("DEEPL_AUTH_KEY") ||
+    raise """
+    environment variable DEEPL_AUTH_KEY is missing.
+    """
+
+config :deep_thought, :deepl, auth_key: deepl_auth_key
+
 slack_bot_token =
   System.get_env("SLACK_BOT_TOKEN") ||
     raise """

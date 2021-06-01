@@ -54,4 +54,18 @@ defmodule DeepThought.Slack do
     |> Event.url_verification_changeset(attrs)
     |> Repo.insert()
   end
+
+  def transform_message_text([]), do: nil
+
+  def transform_message_text([message | _]) do
+    case Map.get(message, "text") do
+      nil ->
+        nil
+
+      message ->
+        message = Regex.replace(~r/<@\S+>/i, message, "👤")
+        message = Regex.replace(~r/<!\S+>/i, message, "👥")
+        message
+    end
+  end
 end
