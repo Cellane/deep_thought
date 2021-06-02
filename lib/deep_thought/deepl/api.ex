@@ -25,5 +25,11 @@ defmodule DeepThought.DeepL.API do
   end
 
   defp translate_request_body(text, target_language),
-    do: %{"auth_key" => @auth_key, "text" => text, "target_lang" => target_language}
+    do: %{
+      "auth_key" => @auth_key,
+      "text" => text,
+      "target_lang" => target_language,
+      "tag_handling" => "xml",
+      "ignore_tags" => "username"
+    }
 end
