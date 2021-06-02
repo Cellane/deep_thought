@@ -9,7 +9,7 @@ defmodule DeepThought.DeepL.Translator do
     unless Slack.recently_translated?(channel_id, message_ts, language) do
       {:ok, [message | _]} = Slack.API.conversations_replies(channel_id, message_ts)
 
-      case transform_message_text(message) do
+      case escape_message_text(message) do
         messageText ->
           {:ok, translation} = DeepL.API.translate(messageText, language)
           :ok = Slack.say_in_thread(channel_id, translation, message, messageText)
@@ -22,11 +22,12 @@ defmodule DeepThought.DeepL.Translator do
     end
   end
 
-  defp transform_message_text(message) do
+  def escape_message_text(message) do
     messageText = Map.get(message, "text")
-    messageText = Regex.replace(~r/<@\S+>/i, messageText, "👤")
-    messageText = Regex.replace(~r/<!\S+>/i, messageText, "👥")
-    messageText
+
+    Regex.replace(~r/<([@!]\S+)>/i, messageText, fn _, username ->
+      "<username>&lt;" <> username <> "&gt;</username>"
+    end)
   end
 
   defp create_translation_event_params(
