@@ -8,26 +8,41 @@ defmodule DeepThought.DeepL.Translator do
 
     unless Slack.recently_translated?(channel_id, message_ts, language) do
       {:ok, [message | _]} = Slack.API.conversations_replies(channel_id, message_ts)
+      message_text = escape_message_text(message)
+      {:ok, translation} = DeepL.API.translate(message_text, language)
+      translatedText = handle_usernames(translation)
+      :ok = Slack.say_in_thread(channel_id, translatedText, message, message_text)
+      params = create_translation_event_params(event_details, language)
 
-      case escape_message_text(message) do
-        message_text ->
-          {:ok, translation} = DeepL.API.translate(message_text, language)
-          translatedText = handle_usernames(translation)
-          :ok = Slack.say_in_thread(channel_id, translatedText, message, message_text)
-          params = create_translation_event_params(event_details, language)
-          Slack.create_event(params)
-
-        _ ->
-          nil
-      end
+      Slack.create_event(params)
     end
   end
 
   def handle_usernames(message_text) do
     message_text
     |> unescape_message_text()
+    |> collect_user_ids()
+    # |> load_cached_user_ids()
+    |> replace_all_user_ids()
+  end
 
-    # convert user IDs to usernames here
+  defp replace_all_user_ids({message_text, user_ids}) do
+    stream =
+      Task.async_stream(user_ids, fn user_id ->
+        {:ok, %{"real_name" => real_name}} = Slack.API.users_profile_get(user_id)
+        {user_id, real_name}
+      end)
+
+    Enum.reduce(stream, message_text, fn {:ok, {user_id, real_name}}, acc ->
+      String.replace(acc, "<@#{user_id}>", " `@#{real_name}`")
+    end)
+  end
+
+  defp collect_user_ids(message_text) do
+    {message_text,
+     Regex.scan(~r/<@(\S+)>/i, message_text, capture: :all_but_first)
+     |> List.flatten()
+     |> Enum.uniq()}
   end
 
   def escape_message_text(%{"text" => message_text}) do
@@ -39,7 +54,7 @@ defmodule DeepThought.DeepL.Translator do
   def unescape_message_text(message_text) do
     Regex.replace(~r/<username>&lt;([!@]\S+)&gt;<\/username>/i, message_text, fn
       _, "!" <> global ->
-        "`@" <> global <> "`"
+        "`!" <> global <> "`"
 
       _, "@" <> username ->
         "<@" <> username <> ">"
