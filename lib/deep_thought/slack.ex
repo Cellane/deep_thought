@@ -38,6 +38,15 @@ defmodule DeepThought.Slack do
   """
   def get_event!(id), do: Repo.get!(Event, id)
 
+  def recently_translated?(channel_id, message_ts, target_language) do
+    count =
+      Event.recently_translated(channel_id, message_ts, target_language)
+      |> Ecto.Query.select([q], count(q.id))
+      |> Repo.one()
+
+    count > 0
+  end
+
   @doc """
   Creates a event.
 
