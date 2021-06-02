@@ -23,17 +23,9 @@ defmodule DeepThoughtWeb.EventController do
               "type" => "reaction_added"
             } = event_details,
           "type" => "event_callback"
-        } = event_params
+        }
       ) do
-    with {:ok, language} <- LanguageConverter.reaction_to_lang(reaction),
-         {:ok, [message | _]} <- Slack.API.conversations_replies(channel_id, message_ts),
-         messageText when not is_nil(messageText) <- Slack.transform_message_text(message),
-         {:ok, translation} <- DeepL.API.translate(messageText, language),
-         :ok <- Slack.say_in_thread(channel_id, translation, message, messageText) do
-      send_resp(conn, :no_content, "")
-    else
-      _ ->
-        send_resp(conn, :internal_server_error, "")
-    end
+    DeepThought.TranslatorSupervisor.translate(event_details, reaction, channel_id, message_ts)
+    send_resp(conn, :ok, "")
   end
 end

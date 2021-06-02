@@ -14,9 +14,10 @@ defmodule DeepThought.Application do
       # Start the PubSub system
       {Phoenix.PubSub, name: DeepThought.PubSub},
       # Start the Endpoint (http/https)
-      DeepThoughtWeb.Endpoint
+      DeepThoughtWeb.Endpoint,
       # Start a worker by calling: DeepThought.Worker.start_link(arg)
       # {DeepThought.Worker, arg}
+      {Task.Supervisor, name: DeepThought.TranslatorSupervisor}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

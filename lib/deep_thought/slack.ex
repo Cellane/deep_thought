@@ -56,11 +56,10 @@ defmodule DeepThought.Slack do
     |> Repo.insert()
   end
 
-  def transform_message_text(message) do
-    messageText = Map.get(message, "text")
-    messageText = Regex.replace(~r/<@\S+>/i, messageText, "👤")
-    messageText = Regex.replace(~r/<!\S+>/i, messageText, "👥")
-    messageText
+  def create_event(%{"type" => "reaction_added"} = attrs) do
+    %Event{}
+    |> Event.reaction_added_changeset(attrs)
+    |> Repo.insert()
   end
 
   def say_in_thread(channel_id, text, message, original_text) do
