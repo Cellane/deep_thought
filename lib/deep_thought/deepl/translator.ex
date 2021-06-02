@@ -22,20 +22,41 @@ defmodule DeepThought.DeepL.Translator do
     message_text
     |> unescape_message_text()
     |> collect_user_ids()
-    # |> load_cached_user_ids()
+    |> load_cached_user_ids()
     |> replace_all_user_ids()
   end
 
-  defp replace_all_user_ids({message_text, user_ids}) do
+  defp load_cached_user_ids({message_text, user_ids}) do
+    resolved_usernames = Slack.find_users(user_ids)
+
+    resolved_user_ids =
+      resolved_usernames
+      |> Enum.map(& &1.user_id)
+
+    {message_text, resolved_usernames, user_ids -- resolved_user_ids}
+  end
+
+  defp replace_all_user_ids({message_text, resolved, unresolved_user_ids}) do
     stream =
-      Task.async_stream(user_ids, fn user_id ->
+      Task.async_stream(unresolved_user_ids, fn user_id ->
         {:ok, %{"real_name" => real_name}} = Slack.API.users_profile_get(user_id)
         {user_id, real_name}
       end)
 
-    Enum.reduce(stream, message_text, fn {:ok, {user_id, real_name}}, acc ->
-      String.replace(acc, "<@#{user_id}>", " `@#{real_name}`")
-    end)
+    usernames =
+      Enum.reduce(stream, [], fn {:ok, {user_id, real_name}}, acc ->
+        [%{user_id: user_id, real_name: real_name} | acc]
+      end)
+
+    Slack.upsert_users(usernames)
+
+    Enum.reduce(
+      usernames ++ resolved,
+      message_text,
+      fn %{real_name: real_name, user_id: user_id}, acc ->
+        String.replace(acc, "<@#{user_id}>", " `@#{real_name}`")
+      end
+    )
   end
 
   defp collect_user_ids(message_text) do

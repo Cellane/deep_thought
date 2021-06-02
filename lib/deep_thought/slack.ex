@@ -7,7 +7,7 @@ defmodule DeepThought.Slack do
   alias DeepThought.Repo
 
   alias DeepThought.Slack
-  alias DeepThought.Slack.Event
+  alias DeepThought.Slack.{Event, User}
 
   @doc """
   Returns the list of events.
@@ -69,6 +69,28 @@ defmodule DeepThought.Slack do
     %Event{}
     |> Event.reaction_added_changeset(attrs)
     |> Repo.insert()
+  end
+
+  def find_users(user_ids) do
+    User.with_user_ids(user_ids)
+    |> Repo.all()
+  end
+
+  def upsert_users(data) do
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    data =
+      data
+      |> Enum.map(fn row ->
+        row
+        |> Map.put(:inserted_at, now)
+        |> Map.put(:updated_at, now)
+      end)
+
+    Repo.insert_all(User, data,
+      conflict_target: [:user_id],
+      on_conflict: {:replace, [:real_name]}
+    )
   end
 
   def say_in_thread(channel_id, text, message, original_text) do
