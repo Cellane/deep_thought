@@ -89,7 +89,7 @@ defmodule DeepThought.Slack do
 
     Repo.insert_all(User, data,
       conflict_target: [:user_id],
-      on_conflict: {:replace, [:real_name]}
+      on_conflict: {:replace, [:real_name, :updated_at]}
     )
   end
 

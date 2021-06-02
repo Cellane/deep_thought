@@ -20,8 +20,10 @@ defmodule DeepThought.Slack.User do
   end
 
   def with_user_ids(user_ids) do
+    half_day_ago = NaiveDateTime.utc_now() |> NaiveDateTime.add(-60 * 60 * 12)
+
     from(u in User,
-      where: u.user_id in ^user_ids,
+      where: u.user_id in ^user_ids and u.updated_at >= ^half_day_ago,
       select: %{user_id: u.user_id, real_name: u.real_name}
     )
   end

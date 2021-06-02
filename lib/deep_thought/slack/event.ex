@@ -33,8 +33,9 @@ defmodule DeepThought.Slack.Event do
 
     from(e in Event,
       where:
-        e.channel_id == ^channel_id and e.message_ts == ^message_ts and
-          e.target_language == ^target_language and e.inserted_at >= ^one_day_ago
+        e.type == ^"reaction_added" and e.channel_id == ^channel_id and
+          e.message_ts == ^message_ts and e.target_language == ^target_language and
+          e.inserted_at >= ^one_day_ago
     )
   end
 end
