@@ -10,9 +10,10 @@ defmodule DeepThought.DeepL.Translator do
       {:ok, [message | _]} = Slack.API.conversations_replies(channel_id, message_ts)
 
       case escape_message_text(message) do
-        messageText ->
-          {:ok, translation} = DeepL.API.translate(messageText, language)
-          :ok = Slack.say_in_thread(channel_id, translation, message, messageText)
+        message_text ->
+          {:ok, translation} = DeepL.API.translate(message_text, language)
+          translatedText = handle_usernames(translation)
+          :ok = Slack.say_in_thread(channel_id, translatedText, message, message_text)
           params = create_translation_event_params(event_details, language)
           Slack.create_event(params)
 
@@ -22,11 +23,26 @@ defmodule DeepThought.DeepL.Translator do
     end
   end
 
-  def escape_message_text(message) do
-    messageText = Map.get(message, "text")
+  def handle_usernames(message_text) do
+    message_text
+    |> unescape_message_text()
 
-    Regex.replace(~r/<([@!]\S+)>/i, messageText, fn _, username ->
+    # convert user IDs to usernames here
+  end
+
+  def escape_message_text(%{"text" => message_text}) do
+    Regex.replace(~r/<([!@]\S+)>/i, message_text, fn _, username ->
       "<username>&lt;" <> username <> "&gt;</username>"
+    end)
+  end
+
+  def unescape_message_text(message_text) do
+    Regex.replace(~r/<username>&lt;([!@]\S+)&gt;<\/username>/i, message_text, fn
+      _, "!" <> global ->
+        "`@" <> global <> "`"
+
+      _, "@" <> username ->
+        "<@" <> username <> ">"
     end)
   end
 

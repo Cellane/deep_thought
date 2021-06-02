@@ -14,7 +14,7 @@ defmodule DeepThought.DeepL.API do
          body when is_map(body) <- response.body(),
          [translation | _] <- Map.get(body, "translations"),
          text <- Map.get(translation, "text") do
-      {:ok, unescape_message_text(text)}
+      {:ok, text}
     else
       {:error, error} ->
         {:error, error}
@@ -32,10 +32,4 @@ defmodule DeepThought.DeepL.API do
       "tag_handling" => "xml",
       "ignore_tags" => "username"
     }
-
-  defp unescape_message_text(text),
-    do:
-      Regex.replace(~r/<username>&lt;([@!]\S+)&gt;<\/username>/i, text, fn _, username ->
-        "<" <> username <> ">"
-      end)
 end
