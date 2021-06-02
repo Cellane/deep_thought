@@ -67,19 +67,41 @@ defmodule DeepThought.DeepL.Translator do
   end
 
   defp escape_message_text(%{"text" => message_text}) do
-    Regex.replace(~r/<([!@]\S+)>/i, message_text, fn _, username ->
+    message_text
+    |> escape_usernames()
+    |> escape_emojis()
+  end
+
+  defp escape_usernames(text) do
+    Regex.replace(~r/<([!@]\S+)>/i, text, fn _, username ->
       "<username>&lt;" <> username <> "&gt;</username>"
     end)
   end
 
+  defp escape_emojis(text) do
+    Regex.replace(~r/(:\S+:)/i, text, fn _, emoji ->
+      "<emoji>" <> emoji <> "</emoji>"
+    end)
+  end
+
   defp unescape_message_text(message_text) do
-    Regex.replace(~r/<username>&lt;([!@]\S+)&gt;<\/username>/i, message_text, fn
+    message_text
+    |> unescape_usernames()
+    |> unescape_emojis()
+  end
+
+  defp unescape_usernames(text) do
+    Regex.replace(~r/<username>&lt;([!@]\S+)&gt;<\/username>/i, text, fn
       _, "!" <> global ->
         "`!" <> global <> "`"
 
       _, "@" <> username ->
         "<@" <> username <> ">"
     end)
+  end
+
+  defp unescape_emojis(text) do
+    Regex.replace(~r/<\/?emoji>/i, text, "")
   end
 
   defp create_translation_event_params(
