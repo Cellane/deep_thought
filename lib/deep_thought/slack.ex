@@ -6,6 +6,7 @@ defmodule DeepThought.Slack do
   import Ecto.Query, warn: false
   alias DeepThought.Repo
 
+  alias DeepThought.Slack
   alias DeepThought.Slack.Event
 
   @doc """
@@ -37,6 +38,15 @@ defmodule DeepThought.Slack do
   """
   def get_event!(id), do: Repo.get!(Event, id)
 
+  def recently_translated?(channel_id, message_ts, target_language) do
+    count =
+      Event.recently_translated(channel_id, message_ts, target_language)
+      |> Ecto.Query.select([q], count(q.id))
+      |> Repo.one()
+
+    count > 0
+  end
+
   @doc """
   Creates a event.
 
@@ -54,4 +64,27 @@ defmodule DeepThought.Slack do
     |> Event.url_verification_changeset(attrs)
     |> Repo.insert()
   end
+
+  def create_event(%{"type" => "reaction_added"} = attrs) do
+    %Event{}
+    |> Event.reaction_added_changeset(attrs)
+    |> Repo.insert()
+  end
+
+  def say_in_thread(channel_id, text, message, original_text) do
+    blocks =
+      [
+        Slack.TranslationBlock.generate(text),
+        Slack.FooterBlock.generate(message, channel_id, original_text)
+      ]
+      |> Jason.encode!()
+
+    Slack.API.chat_post_message(channel_id, text,
+      blocks: blocks,
+      thread_ts: get_thread_ts(message)
+    )
+  end
+
+  defp get_thread_ts(%{"thread_ts" => thread_ts}), do: thread_ts
+  defp get_thread_ts(%{"ts" => ts}), do: ts
 end

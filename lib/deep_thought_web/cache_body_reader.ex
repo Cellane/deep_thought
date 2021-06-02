@@ -7,7 +7,6 @@ defmodule DeepThoughtWeb.CacheBodyReader do
   end
 
   def read_cached_body(conn) do
-    IO.inspect(conn.private[:raw_body])
     conn.private[:raw_body]
   end
 end
