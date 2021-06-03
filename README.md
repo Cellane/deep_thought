@@ -148,7 +148,7 @@ To start your bot:
 
 ## Privacy
 
-While the bot has to store some information in its database in order to function properly, it does not store either the original nor the translated message. Currently, this is these are the only pieces of information that _Deep Thought_ stores:
+While the bot has to store some information in its database in order to function properly, it does not store either the original nor the translated message. Currently, these are the only pieces of information that _Deep Thought_ stores:
 
 - For each translated message:
   - `channel_id`, an unique identifier of the channel in which the message was posted
