@@ -1,9 +1,8 @@
 defmodule DeepThoughtWeb.EventController do
   use DeepThoughtWeb, :controller
 
-  alias DeepThought.DeepL
   alias DeepThought.Slack
-  alias DeepThought.Slack.{Event, LanguageConverter}
+  alias DeepThought.Slack.Event
 
   action_fallback(DeepThoughtWeb.FallbackController)
 
