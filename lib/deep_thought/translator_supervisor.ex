@@ -9,6 +9,12 @@ defmodule DeepThought.TranslatorSupervisor do
     )
   end
 
+  def delete(payload) do
+    Task.Supervisor.start_child(__MODULE__, DeepThought.DeepL.Translator, :delete, [payload],
+      restart: :transient
+    )
+  end
+
   def simple_translate(channel_id, text, username) do
     Task.Supervisor.start_child(
       __MODULE__,

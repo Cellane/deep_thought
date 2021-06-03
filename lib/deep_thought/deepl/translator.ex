@@ -18,6 +18,23 @@ defmodule DeepThought.DeepL.Translator do
     end
   end
 
+  def delete(payload) do
+    %{
+      "actions" => [%{"selected_option" => %{"value" => "delete"}}],
+      "container" => %{
+        "channel_id" => channel_id,
+        "message_ts" => message_ts,
+        "thread_ts" => thread_ts
+      },
+      "user" => %{"id" => user_id}
+    } = Jason.decode!(payload)
+
+    :ok = Slack.API.chat_delete(channel_id, message_ts)
+    message = "I deleted the translation."
+
+    Slack.API.chat_post_ephemeral(channel_id, user_id, message, thread_ts)
+  end
+
   defp handle_usernames(message_text) do
     message_text
     |> unescape_message_text()
