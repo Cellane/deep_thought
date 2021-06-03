@@ -123,6 +123,8 @@ To deploy _Deep Thought_, you first need to create a Slack application, then con
    dokku domains:set bot YOUR.DOMAIN.HERE
    ```
 
+6. Configure TLS so that the bot is accessible via HTTPS in a way that is acceptable to you, perhaps with Dokku’s [Let’s Encrypt plugin](https://github.com/dokku/dokku-letsencrypt)
+
 ### Dokku configuration (local side)
 
 1. From the directory into which you have checked this repository out, configure the remote repository pointing at your Dokku instance:
