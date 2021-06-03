@@ -4,17 +4,21 @@ defmodule DeepThought.DeepL.Translator do
   alias DeepThought.Slack.LanguageConverter
 
   def translate(event_details, reaction, channel_id, message_ts) do
-    {:ok, language} = LanguageConverter.reaction_to_lang(reaction)
+    case LanguageConverter.reaction_to_lang(reaction) do
+      {:ok, language} ->
+        unless Slack.recently_translated?(channel_id, message_ts, language) do
+          {:ok, [message | _]} = Slack.API.conversations_replies(channel_id, message_ts)
+          message_text = escape_message_text(message)
+          {:ok, translation} = DeepL.API.translate(message_text, language)
+          translatedText = handle_usernames(translation)
+          :ok = say_in_thread(channel_id, translatedText, message, message_text)
+          params = create_translation_event_params(event_details, language)
 
-    unless Slack.recently_translated?(channel_id, message_ts, language) do
-      {:ok, [message | _]} = Slack.API.conversations_replies(channel_id, message_ts)
-      message_text = escape_message_text(message)
-      {:ok, translation} = DeepL.API.translate(message_text, language)
-      translatedText = handle_usernames(translation)
-      :ok = say_in_thread(channel_id, translatedText, message, message_text)
-      params = create_translation_event_params(event_details, language)
+          Slack.create_event(params)
+        end
 
-      Slack.create_event(params)
+      :error ->
+        nil
     end
   end
 
