@@ -6,7 +6,10 @@ defmodule DeepThought.DeepL.API do
   plug(Tesla.Middleware.DecodeJson)
 
   @auth_key Application.get_env(:deep_thought, :deepl)[:auth_key]
-  @headers [{"content-type", "application/x-www-form-urlencoded"}]
+  @headers [
+    {"Authorization", "DeepL-Auth-Key #{@auth_key}"},
+    {"content-type", "application/x-www-form-urlencoded"}
+  ]
 
   def translate(text, target_language) do
     with {:ok, response} <-
@@ -26,7 +29,6 @@ defmodule DeepThought.DeepL.API do
 
   defp translate_request_body(text, target_language),
     do: %{
-      "auth_key" => @auth_key,
       "text" => text,
       "target_lang" => target_language,
       "tag_handling" => "xml",
